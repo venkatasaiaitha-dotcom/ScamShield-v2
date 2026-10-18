@@ -11,7 +11,7 @@ import HistoryView from './views/HistoryView';
 import SourcesView from './views/SourcesView';
 import SafetyView from './views/SafetyView';
 import SettingsView from './views/SettingsView';
-import { api, createWebSocketClient, playAlertChime } from './services/api';
+import { api, createWebSocketClient, playAlertChime, getAuthToken } from './services/api';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState('home');
@@ -83,13 +83,19 @@ export default function App() {
     let isMounted = true;
     async function checkAuth() {
       try {
+        if (!getAuthToken()) {
+          const res = await api.login('user@scamshield.local', 'UserSafe2026!');
+          if (isMounted && res?.user) {
+            setCurrentUser(res.user);
+            return;
+          }
+        }
         const user = await api.getCurrentUser();
         if (isMounted) setCurrentUser(user);
       } catch {
-        // If not logged in, attempt quick demo login for smooth hackathon demo
         try {
           const res = await api.login('user@scamshield.local', 'UserSafe2026!');
-          if (isMounted) setCurrentUser(res.user);
+          if (isMounted) setCurrentUser(res?.user || null);
         } catch {
           if (isMounted) setCurrentUser(null);
         }
@@ -272,7 +278,7 @@ export default function App() {
         } else if (res.risk_level === 'SUSPICIOUS') {
           navigator.vibrate([150]);
         }
-      } catch (e) {}
+      } catch {}
     }
 
     // Native Mobile & Browser Notification
@@ -284,7 +290,7 @@ export default function App() {
           badge: '/favicon.svg',
           tag: `scamshield-${res.id}`,
         });
-      } catch (e) {}
+      } catch {}
     }
 
     // Trigger Mobile Heads-Up Drop Notification
@@ -344,7 +350,7 @@ export default function App() {
         });
         window.history.replaceState({}, document.title, window.location.pathname);
       }
-    } catch (e) {}
+    } catch {}
   }, []);
 
   const handleDateRangeChange = (newRange) => {

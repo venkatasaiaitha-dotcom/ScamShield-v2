@@ -6,7 +6,6 @@ import {
   ShieldAlert,
   PlusCircle,
   Clock,
-  Sparkles,
   CheckCircle2,
   Loader2
 } from 'lucide-react';
@@ -58,7 +57,7 @@ export default function CommunityRadarCard() {
 
     setSubmitting(true);
     try {
-      const res = await api.reportToCommunity({
+      await api.reportToCommunity({
         threat_title: newTitle.trim(),
         sender: newSender.trim() || 'Unknown',
         category: newCategory,

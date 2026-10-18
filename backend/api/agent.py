@@ -8,6 +8,7 @@ from ..security.deps import get_current_user
 router = APIRouter(prefix="/api/agent", tags=["Agent"])
 
 @router.get("/status", response_model=AgentStatusResponse)
+@router.get("/stats", response_model=AgentStatusResponse)
 async def get_agent_status(
     date_range: str = Query("all", pattern="^(today|7days|30days|all)$"),
     current_user: Dict[str, Any] = Depends(get_current_user)

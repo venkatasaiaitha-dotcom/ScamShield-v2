@@ -158,6 +158,13 @@ class ScamShieldAgent:
             except Exception:
                 pass
 
+        # Record into FalkorDB Knowledge Graph (Track 1: Connected Evidence)
+        try:
+            from ..services.graph_service import graph_service
+            graph_service.ingest_analysis_to_graph(full_analysis_dict, full_content=normalized["content"])
+        except Exception:
+            pass
+
         # 4. Dispatch live real-time notification to the user's authenticated WebSocket only
         stats = get_stats(user_id)
         await notification_service.dispatch_analysis_event(user_id, full_analysis_dict, stats)

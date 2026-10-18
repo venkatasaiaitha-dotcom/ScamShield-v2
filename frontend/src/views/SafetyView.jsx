@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   BookOpen,
   KeyRound,
@@ -10,12 +10,8 @@ import {
   CheckCircle2,
   XCircle,
   ShieldCheck,
-  ShieldAlert,
-  Server,
   Activity,
-  Lock,
-  RefreshCw,
-  Radio
+  RefreshCw
 } from 'lucide-react';
 import { api } from '../services/api';
 import CommunityRadarCard from '../components/CommunityRadarCard';
@@ -25,13 +21,7 @@ export default function SafetyView() {
   const [securityData, setSecurityData] = useState(null);
   const [loadingSecurity, setLoadingSecurity] = useState(false);
 
-  useEffect(() => {
-    if (activeTab === 'security') {
-      fetchSecurityHealth();
-    }
-  }, [activeTab]);
-
-  const fetchSecurityHealth = async () => {
+  const fetchSecurityHealth = useCallback(async () => {
     setLoadingSecurity(true);
     try {
       const data = await api.getSecurityHealth();
@@ -41,7 +31,13 @@ export default function SafetyView() {
     } finally {
       setLoadingSecurity(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'security') {
+      fetchSecurityHealth();
+    }
+  }, [activeTab, fetchSecurityHealth]);
 
   const tips = [
     {

@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any, Optional
 
 from collections import defaultdict
-from ..config import DB_PATH, ADMIN_EMAIL, ADMIN_PASSWORD
+from ..config import DB_PATH, ADMIN_EMAIL, ADMIN_PASSWORD, IS_DEV
 from ..security.password import hash_password
 
 def get_connection():
@@ -286,21 +286,30 @@ def init_db():
     # Seed Initial Admin Account if users table is empty (Part 2)
     cursor.execute("SELECT COUNT(*) FROM users")
     if cursor.fetchone()[0] == 0:
-        admin_id = f"usr-{uuid.uuid4().hex[:8]}"
-        hashed_pwd = hash_password(ADMIN_PASSWORD)
-        now_str = datetime.now(timezone.utc).isoformat()
-        cursor.execute("""
-            INSERT INTO users (id, email, password_hash, role, is_active, created_at, updated_at)
-            VALUES (?, ?, ?, 'ADMIN', 1, ?, ?)
-        """, (admin_id, ADMIN_EMAIL.lower().strip(), hashed_pwd, now_str, now_str))
+        if IS_DEV:
+            admin_id = f"usr-{uuid.uuid4().hex[:8]}"
+            hashed_pwd = hash_password(ADMIN_PASSWORD)
+            now_str = datetime.now(timezone.utc).isoformat()
+            cursor.execute("""
+                INSERT INTO users (id, email, password_hash, role, is_active, created_at, updated_at)
+                VALUES (?, ?, ?, 'ADMIN', 1, ?, ?)
+            """, (admin_id, ADMIN_EMAIL.lower().strip(), hashed_pwd, now_str, now_str))
 
-        # Also create a default demo user for convenient hackathon testing
-        demo_user_id = f"usr-{uuid.uuid4().hex[:8]}"
-        demo_pwd = hash_password("UserSafe2026!")
-        cursor.execute("""
-            INSERT INTO users (id, email, password_hash, role, is_active, created_at, updated_at)
-            VALUES (?, ?, ?, 'USER', 1, ?, ?)
-        """, (demo_user_id, "user@scamshield.local", demo_pwd, now_str, now_str))
+            # Also create a default demo user for convenient hackathon testing in development
+            demo_user_id = f"usr-{uuid.uuid4().hex[:8]}"
+            demo_pwd = hash_password("UserSafe2026!")
+            cursor.execute("""
+                INSERT INTO users (id, email, password_hash, role, is_active, created_at, updated_at)
+                VALUES (?, ?, ?, 'USER', 1, ?, ?)
+            """, (demo_user_id, "user@scamshield.local", demo_pwd, now_str, now_str))
+        elif os.getenv("ADMIN_PASSWORD") and os.getenv("ADMIN_EMAIL"):
+            admin_id = f"usr-{uuid.uuid4().hex[:8]}"
+            hashed_pwd = hash_password(ADMIN_PASSWORD)
+            now_str = datetime.now(timezone.utc).isoformat()
+            cursor.execute("""
+                INSERT INTO users (id, email, password_hash, role, is_active, created_at, updated_at)
+                VALUES (?, ?, ?, 'ADMIN', 1, ?, ?)
+            """, (admin_id, ADMIN_EMAIL.lower().strip(), hashed_pwd, now_str, now_str))
 
     conn.commit()
     conn.close()

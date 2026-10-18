@@ -599,15 +599,7 @@ export const api = {
   },
 
   async getCurrentUser() {
-    try {
-      return await request(`${API_BASE}/auth/me`);
-    } catch {
-      return {
-        id: 'usr-demo-01',
-        email: 'user@scamshield.local',
-        role: 'ADMIN',
-      };
-    }
+    return await request(`${API_BASE}/auth/me`);
   },
 
   async logout() {
@@ -1206,6 +1198,52 @@ export const api = {
           threat_status: 'ACTIVE_CAMPAIGN'
         }
       ];
+    }
+  },
+
+  // ==========================================
+  // FALKORDB CONNECTED-EVIDENCE INVESTIGATION (Track 1)
+  // ==========================================
+  async investigateMessage(payload) {
+    try {
+      return await request(`${API_BASE}/investigate`, {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      throw err;
+    }
+  },
+
+  async getInvestigation(messageId) {
+    try {
+      return await request(`${API_BASE}/investigate/${encodeURIComponent(messageId)}`);
+    } catch (err) {
+      throw err;
+    }
+  },
+
+  async getGraphStats() {
+    try {
+      return await request(`${API_BASE}/graph/stats`);
+    } catch (err) {
+      return { connected: false, error: err.message };
+    }
+  },
+
+  async seedGraph() {
+    try {
+      return await request(`${API_BASE}/graph/seed`, { method: 'POST' });
+    } catch (err) {
+      throw err;
+    }
+  },
+
+  async getHealth() {
+    try {
+      return await request(`${API_BASE}/health`);
+    } catch (err) {
+      return { status: 'offline', error: err.message };
     }
   },
 };

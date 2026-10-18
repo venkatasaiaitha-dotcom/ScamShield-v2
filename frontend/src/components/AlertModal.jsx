@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldAlert, AlertTriangle, AlertOctagon, X, ShieldCheck, Eye } from 'lucide-react';
+import { ShieldAlert, AlertTriangle, AlertOctagon, X, Network } from 'lucide-react';
 
 export default function AlertModal({ alert, onClose, onViewDetails }) {
   if (!alert) return null;
@@ -121,8 +121,8 @@ export default function AlertModal({ alert, onClose, onViewDetails }) {
               }}
               className="px-4 py-2 text-xs font-semibold bg-teal-700 hover:bg-teal-800 text-white rounded-xl shadow-xs transition-colors flex items-center space-x-1.5 cursor-pointer"
             >
-              <Eye className="w-3.5 h-3.5" />
-              <span>View Full Analysis</span>
+              <Network className="w-3.5 h-3.5" />
+              <span>Investigate Connected Evidence</span>
             </button>
           )}
         </div>

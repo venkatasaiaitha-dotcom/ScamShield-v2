@@ -2,10 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   Mail,
   Send,
-  Lock,
   CheckCircle2,
   AlertTriangle,
-  HelpCircle,
   Sparkles,
   ShieldCheck,
   ArrowRight,
@@ -27,17 +25,18 @@ export default function GmailConnectorCard({ onMessageAnalyzed, onOpenDetail }) 
   const [feedback, setFeedback] = useState(null);
 
   useEffect(() => {
-    loadGmailStatus();
-  }, []);
-
-  const loadGmailStatus = async () => {
-    try {
-      const status = await api.getGmailStatus();
-      setGmailStatus(status);
-    } catch (err) {
-      console.error('Error loading Gmail status:', err);
+    let isMounted = true;
+    async function loadGmailStatus() {
+      try {
+        const status = await api.getGmailStatus();
+        if (isMounted) setGmailStatus(status);
+      } catch (err) {
+        console.error('Error loading Gmail status:', err);
+      }
     }
-  };
+    loadGmailStatus();
+    return () => { isMounted = false; };
+  }, []);
 
   const handleDirectInspect = async (e) => {
     e.preventDefault();

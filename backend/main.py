@@ -22,20 +22,29 @@ from .api import (
     sources_router,
     settings_router,
     gmail_router,
-    community_router
+    community_router,
+    investigate_router
 )
+from .services.graph_service import graph_service
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup: Initialize SQLite database and bootstrap default accounts
     init_db()
+    # Check FalkorDB graph connection
+    is_ok, msg = graph_service.check_connection()
+    if is_ok:
+        try:
+            graph_service.init_schema()
+        except Exception:
+            pass
     yield
     # Shutdown
 
 app = FastAPI(
-    title="ScamShield AI Protection Agent",
-    description="Enterprise-Grade AI-Powered Proactive Scam Detection & Protection Agent API",
-    version="2.0.0",
+    title="ScamShield Graph — AI Cyber Defense Agent",
+    description="Enterprise-Grade AI Scam Detection & FalkorDB Connected-Evidence Investigation Agent API",
+    version="2.0.0-graph",
     lifespan=lifespan
 )
 
@@ -43,11 +52,10 @@ app = FastAPI(
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(StructuredLoggingMiddleware)
 
-# Enable Hardened CORS supporting localhost, LAN IPs, and external client origins
+# Enable Hardened CORS strictly restricted to trusted origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_origin_regex=r"^https?://.*$",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -64,6 +72,7 @@ app.include_router(sources_router)
 app.include_router(settings_router)
 app.include_router(gmail_router)
 app.include_router(community_router)
+app.include_router(investigate_router)
 
 @app.websocket("/ws")
 async def websocket_endpoint(
@@ -126,18 +135,21 @@ if os.path.exists(frontend_dist):
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
-        # Allow API routes and Docs to proceed normally
+        # Allow API routes and Docs to proceed with 404 if not found in routers
         if (
             full_path.startswith("api")
             or full_path.startswith("docs")
             or full_path.startswith("openapi.json")
             or full_path.startswith("ws")
         ):
-            return None
+            raise HTTPException(status_code=404, detail="Not Found")
         file_path = os.path.join(frontend_dist, full_path)
         if os.path.isfile(file_path):
             return FileResponse(file_path)
-        return FileResponse(os.path.join(frontend_dist, "index.html"))
+        return FileResponse(
+            os.path.join(frontend_dist, "index.html"),
+            headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"}
+        )
 else:
     @app.get("/")
     async def root():

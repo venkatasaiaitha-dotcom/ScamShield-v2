@@ -1,6 +1,6 @@
 import os
 import secrets
-from typing import List
+from typing import List, Optional
 
 # Base Paths
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -47,8 +47,26 @@ GOOGLE_REDIRECT_URI: str = os.getenv("GOOGLE_REDIRECT_URI", "http://127.0.0.1:80
 ADMIN_EMAIL: str = os.getenv("ADMIN_EMAIL", "admin@scamshield.local")
 ADMIN_PASSWORD: str = os.getenv("ADMIN_PASSWORD", "ScamShieldAdmin2026!")
 
+# Production Security Gate: Fail securely if production secrets are missing or default
+if not IS_DEV:
+    if not os.getenv("JWT_SECRET"):
+        raise RuntimeError("CRITICAL SECURITY ERROR: In production, JWT_SECRET must be explicitly set via environment variable.")
+    if not os.getenv("SCAMSHIELD_WEBHOOK_SECRET") or os.getenv("SCAMSHIELD_WEBHOOK_SECRET") == "scm_live_sec_token_9921_hackathon":
+        raise RuntimeError("CRITICAL SECURITY ERROR: In production, SCAMSHIELD_WEBHOOK_SECRET must be configured with a secure unique secret.")
+    if not os.getenv("ADMIN_PASSWORD") or os.getenv("ADMIN_PASSWORD") == "ScamShieldAdmin2026!":
+        raise RuntimeError("CRITICAL SECURITY ERROR: In production, ADMIN_PASSWORD must be configured with a secure unique password.")
+
 # Input Validation Limits
 MAX_SENDER_LEN: int = 320
 MAX_SUBJECT_LEN: int = 500
 MAX_BODY_LEN: int = 100000
 MAX_URL_LEN: int = 2048
+
+# FalkorDB Graph Database Configuration
+FALKORDB_HOST: str = os.getenv("FALKORDB_HOST", "127.0.0.1")
+FALKORDB_PORT: int = int(os.getenv("FALKORDB_PORT", "6379"))
+_raw_falkor_pwd = os.getenv("FALKORDB_PASSWORD")
+FALKORDB_PASSWORD: Optional[str] = _raw_falkor_pwd if _raw_falkor_pwd else None
+FALKORDB_GRAPH: str = os.getenv("FALKORDB_GRAPH", "scamshield")
+FALKORDB_SSL: bool = os.getenv("FALKORDB_SSL", "false").lower() in ("true", "1", "yes")
+FALKORDB_TIMEOUT_MS: int = int(os.getenv("FALKORDB_TIMEOUT_MS", "3000"))

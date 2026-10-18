@@ -1,35 +1,33 @@
 import React, { useState } from 'react';
 import {
-  ShieldAlert,
   ShieldCheck,
   AlertTriangle,
   AlertOctagon,
   X,
-  ExternalLink,
   ChevronDown,
   ChevronUp,
   Link,
   Lock,
   LockOpen,
   CheckCircle2,
-  XCircle,
   FileText,
   Copy,
   Check,
   Radio,
-  QrCode,
-  Send,
   Loader2,
-  Languages
+  Languages,
+  Network
 } from 'lucide-react';
 import { api } from '../services/api';
 import ScamAttackChainCard from './ScamAttackChainCard';
 import ScamDNACard from './ScamDNACard';
 import UPISafetyCard from './UPISafetyCard';
 import AttackerNextMoveCard from './AttackerNextMoveCard';
+import GraphInvestigationCard from './GraphInvestigationCard';
 
 export default function AnalysisModal({ analysis, onClose }) {
   const [showTechnical, setShowTechnical] = useState(false);
+  const [showGraphInvestigation, setShowGraphInvestigation] = useState(false);
   const [copied, setCopied] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [reported, setReported] = useState(false);
@@ -58,7 +56,6 @@ export default function AnalysisModal({ analysis, onClose }) {
 
   const isHighRisk = analysis.risk_level === 'HIGH' || analysis.risk_score >= 70;
   const isSuspicious = analysis.risk_level === 'SUSPICIOUS' || (analysis.risk_score >= 30 && analysis.risk_score < 70);
-  const isLow = !isHighRisk && !isSuspicious;
 
   const riskColor = isHighRisk ? 'text-red-600' : isSuspicious ? 'text-amber-600' : 'text-emerald-600';
   const badgeBorder = isHighRisk ? 'border-red-200' : isSuspicious ? 'border-amber-200' : 'border-emerald-200';
@@ -152,6 +149,46 @@ export default function AnalysisModal({ analysis, onClose }) {
             <div className="text-xs text-slate-700 font-mono bg-white p-3 rounded-lg border border-slate-200 whitespace-pre-wrap max-h-36 overflow-y-auto">
               {analysis.content_preview || '(No content preview)'}
             </div>
+          </div>
+
+          {/* Track 1: FalkorDB Connected-Evidence Investigation Action */}
+          <div className="rounded-xl border border-teal-500/40 bg-gradient-to-r from-teal-950/10 via-slate-900/5 to-teal-900/10 p-3.5 shadow-xs">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center space-x-2.5">
+                <div className="p-2 rounded-xl bg-teal-700 text-white shadow-xs">
+                  <Network className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                    FalkorDB Graph Investigation
+                    <span className="text-[10px] px-2 py-0.2 bg-teal-100 text-teal-800 rounded-full font-semibold border border-teal-200">
+                      Track 1
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Query Cypher knowledge graph for shared indicators, campaigns &amp; connected evidence
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setShowGraphInvestigation(!showGraphInvestigation)}
+                className="px-3 py-1.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <Network className="w-3.5 h-3.5" />
+                {showGraphInvestigation ? 'Close Graph View' : 'Investigate Connected Evidence'}
+              </button>
+            </div>
+
+            {showGraphInvestigation && (
+              <div className="mt-3.5 animate-in fade-in duration-200">
+                <GraphInvestigationCard
+                  messageId={analysis.id || analysis.message_id}
+                  messageContent={analysis.full_content || analysis.content_preview}
+                  initialAnalysis={analysis}
+                />
+              </div>
+            )}
           </div>
 
           {/* Multilingual / Code-Mixed Indian Social Engineering Alert */}
